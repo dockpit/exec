@@ -10,11 +10,12 @@ import (
 	"github.com/dockpit/iowait"
 )
 
+//Cmd extends the original os/exec Command structure
 type Cmd struct {
 	*exec.Cmd
 }
 
-//works like start but waits a given amount of time
+//Works like start but waits a given amount of time
 //for a line from stdout that matches
 //the provided regexp, if the command has an stdout or
 //sterr that is not nill, it will replace the stdout with
@@ -58,7 +59,8 @@ func (c *Cmd) StartWithTimeout(to time.Duration, exp *regexp.Regexp) error {
 //Attemps to gracefully shut down the process by first
 //sending a interrupt signal and then wait the given amount
 //for the process to shut down, if the process is still running
-//kill it. @todo test on windows
+//kill it. It will send a os.Interrupt signal which is not
+//currently supported in windows
 func (c *Cmd) StopWithTimeout(to time.Duration) error {
 	exited := make(chan bool)
 	go func() {
