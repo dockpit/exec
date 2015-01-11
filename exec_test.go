@@ -3,6 +3,7 @@ package exec_test
 import (
 	"bytes"
 	"os"
+	"path/filepath"
 	"regexp"
 	"testing"
 	"time"
@@ -13,7 +14,7 @@ import (
 
 func compileDaemon(t *testing.T) {
 	//compile a example daemon that we can stop
-	bcmd := exec.Command("go", "build", "-o=/tmp/daemon", "example/main.go")
+	bcmd := exec.Command("go", "build", "-o=/tmp/daemon", filepath.Join(".example", "main.go"))
 	bcmd.Stdout = os.Stdout
 	bcmd.Stderr = os.Stderr
 	err := bcmd.Run()
