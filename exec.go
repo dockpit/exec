@@ -50,7 +50,6 @@ func (c *Cmd) StartWithTimeout(to time.Duration, exp *regexp.Regexp) error {
 		}
 	}
 
-	<-time.After(time.Millisecond * 200)
 	c.Start()
 
 	return iowait.WaitForRegexp(io.MultiReader(epipe, opipe), exp, to)
@@ -59,7 +58,7 @@ func (c *Cmd) StartWithTimeout(to time.Duration, exp *regexp.Regexp) error {
 //Attemps to gracefully shut down the process by first
 //sending a interrupt signal and then wait the given amount
 //for the process to shut down, if the process is still running
-//kill it. It will send a os.Interrupt signal which is not
+//kill it. @todo It will send a os.Interrupt signal which is not
 //currently supported in windows
 func (c *Cmd) StopWithTimeout(to time.Duration) error {
 	exited := make(chan bool)
@@ -68,16 +67,31 @@ func (c *Cmd) StopWithTimeout(to time.Duration) error {
 		exited <- true
 	}()
 
-	err := c.Process.Signal(os.Interrupt)
+	ps, err := c.expandToChildProcesses(c.Process)
 	if err != nil {
 		return err
+	}
+
+	//signal all (child)processes to better simulate
+	//shell behaviour
+	for _, p := range ps {
+		err := p.Signal(os.Interrupt)
+		if err != nil {
+			return err
+		}
 	}
 
 	select {
 	case <-exited:
 		return nil //process exited by itself
 	case <-time.After(to):
-		return c.Process.Kill() //force process to exit
+		for _, p := range ps {
+			err := p.Kill()
+			if err != nil {
+				return err
+			}
+		}
+		return nil
 	}
 }
 

@@ -71,3 +71,21 @@ func TestStartStopWithDefinedStd(t *testing.T) {
 		assert.Contains(t, buf.String(), "gracefully")
 	}()
 }
+
+func TestStartStopWithChild(t *testing.T) {
+	buf := bytes.NewBuffer(nil)
+	cmd := exec.Command("go", "run", ".example/main.go")
+	cmd.Stderr = buf
+	cmd.Stdout = buf
+
+	err := cmd.StartWithTimeout(time.Second, regexp.MustCompile(`Starting Goji`))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer func() {
+		err = cmd.StopWithTimeout(time.Second)
+		assert.NoError(t, err)
+		assert.Contains(t, buf.String(), "gracefully")
+	}()
+}
