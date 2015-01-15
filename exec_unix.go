@@ -11,6 +11,15 @@ import (
 	"syscall"
 )
 
+// Add low level options that start the new process into a new group
+func (c *Cmd) startInNewGroup() error {
+	if c.SysProcAttr == nil {
+		c.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	}
+
+	return nil
+}
+
 // Retrieve child processes of the given process using pgrep and return its children and the
 // process itself
 func (c *Cmd) expandToChildProcesses(p *os.Process) ([]*os.Process, error) {

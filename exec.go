@@ -22,6 +22,7 @@ type Cmd struct {
 //a io.Multiwriter that also pipes output to the stream
 //that is scanned for the regex
 func (c *Cmd) StartWithTimeout(to time.Duration, exp *regexp.Regexp) error {
+	c.startInNewGroup()
 
 	var err error
 	var opipe io.Reader
